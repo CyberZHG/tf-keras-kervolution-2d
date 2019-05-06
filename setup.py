@@ -10,14 +10,14 @@ with codecs.open('requirements.txt', 'r', 'utf8') as reader:
 
 
 setup(
-    name='keras-kervolution',
+    name='tf-keras-kervolution-2d',
     version='0.1.0',
     packages=find_packages(),
-    url='https://github.com/CyberZHG/keras-kervolution',
+    url='https://github.com/CyberZHG/tf-keras-kervolution-2d',
     license='Anti 996',
     author='CyberZHG',
     author_email='CyberZHG@gmail.com',
-    description='Unofficial implementation of kervolutional neural networks',
+    description='Unofficial implementation of kervolutional 2D',
     long_description=long_description,
     long_description_content_type='text/markdown',
     install_requires=install_requires,

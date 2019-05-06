@@ -3,7 +3,7 @@ from tensorflow.python.keras import initializers, regularizers, constraints
 from tensorflow.python.keras import backend as K
 
 
-__all__ = ['LinearKernel', 'L1Kernel', 'L2Kernel', 'PolynomialKernel']
+__all__ = ['LinearKernel', 'L1Kernel', 'L2Kernel', 'PolynomialKernel', 'GaussianKernel']
 
 
 class LinearKernel(Layer):
@@ -22,7 +22,7 @@ class L1Kernel(Layer):
 
     def call(self, inputs, **kwargs):
         x, kernel = K.expand_dims(inputs[0], axis=-1), inputs[1]
-        return K.mean(K.abs(x - kernel), axis=-2)
+        return K.sum(K.abs(x - kernel), axis=-2)
 
 
 class L2Kernel(Layer):
@@ -32,7 +32,7 @@ class L2Kernel(Layer):
 
     def call(self, inputs, **kwargs):
         x, kernel = K.expand_dims(inputs[0], axis=-1), inputs[1]
-        return K.mean(K.square(x - kernel), axis=-2)
+        return K.sqrt(K.sum(K.square(x - kernel), axis=-2) + K.epsilon())
 
 
 class PolynomialKernel(Layer):
@@ -44,6 +44,7 @@ class PolynomialKernel(Layer):
                  regularizer=None,
                  constraint=None,
                  **kwargs):
+        super(PolynomialKernel, self).__init__(**kwargs)
         self.p = p
         self.c = c
         self.oc = c
@@ -51,7 +52,6 @@ class PolynomialKernel(Layer):
         self.initializer = initializers.get(initializer)
         self.regularizer = regularizers.get(regularizer)
         self.constraint = constraints.get(constraint)
-        super(PolynomialKernel, self).__init__(**kwargs)
 
     def build(self, input_shape):
         if self.trainable_c:
@@ -77,4 +77,20 @@ class PolynomialKernel(Layer):
             'constraint': initializers.serialize(self.constraint),
         }
         base_config = super(PolynomialKernel, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+
+class GaussianKernel(Layer):
+
+    def __init__(self, gamma, **kwargs):
+        super(GaussianKernel, self).__init__(**kwargs)
+        self.gamma = gamma
+
+    def call(self, inputs, **kwargs):
+        x, kernel = K.expand_dims(inputs[0], axis=-1), inputs[1]
+        return K.exp(-self.gamma * K.sum(K.square(x - kernel), axis=-2))
+
+    def get_config(self):
+        config = {'gamma': self.gamma}
+        base_config = super(GaussianKernel, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))

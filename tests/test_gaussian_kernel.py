@@ -4,10 +4,10 @@ from unittest import TestCase
 import numpy as np
 from tensorflow.python.keras.layers import Flatten, Dense
 from tensorflow.python.keras.models import Sequential, load_model
-from tf_keras_kervolution_2d import KernelConv2D, L1Kernel, L2Kernel
+from tf_keras_kervolution_2d import KernelConv2D, GaussianKernel
 
 
-class TestL1L2Kernel(TestCase):
+class TestGaussianKernel(TestCase):
 
     def test_fit(self):
         x = np.random.standard_normal((1024, 3, 5, 5))
@@ -16,25 +16,13 @@ class TestL1L2Kernel(TestCase):
         model = Sequential()
         model.add(Dense(
             input_shape=(3, 5, 5),
-            units=5,
+            units=4,
             activation='tanh',
         ))
         model.add(KernelConv2D(
             filters=4,
             kernel_size=3,
-            kernel_function=L1Kernel(),
-            data_format='channels_first'
-        ))
-        model.add(Dense(
-            units=4,
-            activation='tanh',
-        ))
-        model.add(KernelConv2D(
-            filters=3,
-            kernel_size=3,
-            kernel_function=L2Kernel(),
-            padding='same',
-            data_format='channels_last'
+            kernel_function=GaussianKernel(gamma=0.5),
         ))
         model.add(Flatten())
         model.add(Dense(units=2, activation='softmax'))
@@ -47,8 +35,7 @@ class TestL1L2Kernel(TestCase):
         model.save(model_path)
         model = load_model(model_path, custom_objects={
             'KernelConv2D': KernelConv2D,
-            'L1Kernel': L1Kernel,
-            'L2Kernel': L2Kernel,
+            'GaussianKernel': GaussianKernel,
         })
 
         predicted = model.predict(x).argmax(axis=-1)
